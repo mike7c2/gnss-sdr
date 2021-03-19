@@ -116,6 +116,7 @@ private:
     uint64_t samples_;
     int64_t sampling_frequency_;
     size_t item_size_;
+    size_t pipe_;
 
     uint32_t in_streams_;
     uint32_t out_streams_;

@@ -26,7 +26,7 @@
 #include <iomanip>
 #include <iostream>  // for std::cerr
 #include <utility>
-
+#include <limits>
 
 FileSignalSource::FileSignalSource(const ConfigurationInterface* configuration,
     const std::string& role, unsigned int in_streams, unsigned int out_streams,
@@ -41,6 +41,7 @@ FileSignalSource::FileSignalSource(const ConfigurationInterface* configuration,
     samples_ = configuration->property(role + ".samples", static_cast<uint64_t>(0));
     sampling_frequency_ = configuration->property(role + ".sampling_frequency", static_cast<int64_t>(0));
     filename_ = configuration->property(role + ".filename", default_filename);
+    pipe_ = configuration->property(role + ".pipe", false);
 
     // override value with commandline flag, if present
     if (FLAGS_signal_source != "-")
@@ -182,6 +183,11 @@ FileSignalSource::FileSignalSource(const ConfigurationInterface* configuration,
                     const int64_t bytes_to_skip = samples_to_skip * item_size_;
                     const int64_t bytes_to_process = static_cast<int64_t>(size) - bytes_to_skip;
                     samples_ = floor(static_cast<double>(bytes_to_process) / static_cast<double>(item_size_) - ceil(0.002 * static_cast<double>(sampling_frequency_)));  // process all the samples available in the file excluding at least the last 1 ms
+                }
+            // If reading from a pipe force samples to be uint max
+            if (pipe_)
+                {
+                    samples_ = std::numeric_limits<size_t>::max();
                 }
         }
 
